@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ImageBackground, Image } from 'react-native';
 
 const Start = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -15,12 +15,19 @@ const Start = ({ navigation }) => {
       >
         <Text style={styles.title}>Chat App</Text>
         <View style={styles.contentContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your Name"
-          />
+          <View style={styles.inputContainer}>
+            <Image
+              style={styles.inputImage}
+              source={require("../assets/icon2.png")}
+              size={15}
+            />
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your Name"
+            />
+          </View>
           <View style={styles.chooseColorBox}>
             <Text style={styles.colorText}>Choose Background Color:</Text>
             <View style={styles.colorContainer}>
@@ -79,14 +86,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     marginBottom: 30,
   },
+  inputContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#000",
+    paddingBottom: 10,
+    width: "88%"
+  },
+  inputImage: {
+    marginTop: 10,
+    marginLeft: 10,
+  },
   textInput: {
+    flex: 1,
     width: "88%",
     fontSize: 16,
     fontWeight: "300",
-    borderWidth: 1,
     padding: 15,
     color: "#757083",
-    borderColor: "#757083",
     opacity: 50,
   },
   chooseColorBox: {
@@ -94,11 +113,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   colorText: {
-    flex: 1,
     fontSize: 16,
     fontWeight: "300",
     color: "#757083",
-    textAlign: "left",
   },
   colorContainer: {
     flexDirection: "row",
