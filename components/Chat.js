@@ -41,6 +41,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }, [isConnected]);
 
     const onSend = (newMessages) => {
+        console.log("newMessages", newMessages);
         addDoc(collection(db, "messages"), newMessages[0])
     }
 
@@ -77,7 +78,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
     const renderCustomActions = (props) => {
-        return <CustomActions onSend={onSend} storage={storage} {...props} />;
+        return <CustomActions onSend={onSend} userID={userID} storage={storage} {...props} />;
     };
 
     const renderCustomerView = (props) => {
