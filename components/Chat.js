@@ -27,7 +27,9 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
                     newMessages.push({
                         id: doc.id,
                         ...doc.data(),
-                        createdAt: new Date(doc.data().createdAt.toMillis())
+                        location: doc.location || null,
+                        image: doc.image || null,
+                        createdAt: new Date(doc.data().createdAt.toMillis()),
                     })
                 });
                 cacheMessages(newMessages);
@@ -41,7 +43,6 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }, [isConnected]);
 
     const onSend = (newMessages) => {
-        console.log("newMessages", newMessages);
         addDoc(collection(db, "messages"), newMessages[0])
     }
 
@@ -78,7 +79,22 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
     const renderCustomActions = (props) => {
-        return <CustomActions onSend={onSend} userID={userID} storage={storage} {...props} />;
+        return (
+            <CustomActions
+                userID={userID}
+                storage={storage}
+                {...props}
+                onSend={(newMessages => {
+                    onSend([{
+                        ...newMessages,
+                        user: {
+                            _id: userID,
+                            name: name
+                        }
+                    }])
+                })}
+            />
+        );
     };
 
     const renderCustomerView = (props) => {
