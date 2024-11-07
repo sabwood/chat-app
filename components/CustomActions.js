@@ -7,12 +7,6 @@ import * as ImagePicker from 'expo-image-picker';
 const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID }) => {
     const actionSheet = useActionSheet();
 
-    const generateReference = (uri) => {
-        const timeStamp = new Date().getTime();
-        const imageName = uri.split("/")[uri.split("/").length - 1];
-        return `${userID}-${timeStamp}-${imageName}`;
-    }
-
     const onActionPress = () => {
         const options = ['Choose From Library', 'Take Picture', 'Send Location', 'Cancel'];
         const cancelButtonIndex = options.length - 1;
@@ -37,13 +31,19 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
         );
     };
 
+    const generateReference = (uri) => {
+        const timeStamp = new Date().getTime();
+        const imageName = uri.split("/")[uri.split("/").length - 1];
+        return `${userID}-${timeStamp}-${imageName}`;
+    }
+
     const uploadAndSendImage = async (imageURI) => {
         const uniqueRefString = generateReference(imageURI);
         const newUploadRef = ref(storage, uniqueRefString);
         const response = await fetch(imageURI);
         const blob = await response.blob();
         uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-            const imageURL = await getDownloadURL(snapshot.ref)
+            const imageURL = await getDownloadURL(snapshot.ref);
             onSend({ image: imageURL })
         });
     }
@@ -54,9 +54,8 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
             let result = await ImagePicker.launchImageLibraryAsync();
             console.log(result);
             if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-            else Alert.alert("Permissions haven't been granted.");
-        }
-    }
+        } else Alert.alert("Permissions haven't been granted.");
+    };
 
     const takePhoto = async () => {
         let permissions = await ImagePicker.requestCameraPermissionsAsync();
@@ -64,9 +63,8 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
             let result = await ImagePicker.launchCameraAsync();
             console.log(result);
             if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-            else Alert.alert("Permissions haven't been granted.");
-        }
-    }
+        } else Alert.alert("Permissions haven't been granted.");
+    };
 
     const getLocation = async () => {
         let permissions = await Location.requestForegroundPermissionsAsync();
@@ -82,7 +80,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
                 });
             } else Alert.alert("Error occurred while fetching location");
         } else Alert.alert("Permissions haven't been granted.");
-    }
+    };
 
     return (
         <TouchableOpacity style={styles.container} onPress={onActionPress}>
