@@ -52,7 +52,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
         let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissions?.granted) {
             let result = await ImagePicker.launchImageLibraryAsync();
-            console.log(result);
             if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
         } else Alert.alert("Permissions haven't been granted.");
     };
@@ -61,7 +60,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
         let permissions = await ImagePicker.requestCameraPermissionsAsync();
         if (permissions?.granted) {
             let result = await ImagePicker.launchCameraAsync();
-            console.log(result);
             if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
         } else Alert.alert("Permissions haven't been granted.");
     };
@@ -70,7 +68,6 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
         let permissions = await Location.requestForegroundPermissionsAsync();
         if (permissions?.granted) {
             const location = await Location.getCurrentPositionAsync({});
-            console.log(location);
             if (location) {
                 onSend({
                     location: {

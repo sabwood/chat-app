@@ -1,6 +1,6 @@
 import { Bubble, GiftedChat, InputToolbar } from "react-native-gifted-chat";
 import { useState, useEffect } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
+import { StyleSheet, View, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapView from 'react-native-maps';
@@ -43,7 +43,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }, [isConnected]);
 
     const onSend = (newMessages) => {
-        addDoc(collection(db, "messages"), newMessages[0])
+        addDoc(collection(db, "messages"), newMessages[0]);
     }
 
     const loadCachedMessages = async () => {
@@ -60,17 +60,38 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }
 
     const renderBubble = (props) => {
-        return <Bubble
-            {...props}
-            wrapperStyle={{
-                right: {
-                    backgroundColor: "#000"
-                },
-                left: {
-                    backgroundColor: "#FFF"
-                }
-            }}
-        />
+        const { currentMessage } = props;
+        console.log(currentMessage);
+
+        if (currentMessage.image) {
+            return (
+                <Bubble
+                    {...props}
+                    wrapperStyle={{
+                        right: {
+                            backgroundColor: "#000"
+                        },
+                        left: {
+                            backgroundColor: "#FFF"
+                        }
+                    }}
+                >
+                    <Image source={{ uri: currentMessage.image }} style={{ width: 200, height: 200}} />
+                </Bubble>
+            )
+        } else return (
+            <Bubble
+                {...props}
+                wrapperStyle={{
+                    right: {
+                        backgroundColor: "#000"
+                    },
+                    left: {
+                        backgroundColor: "#FFF"
+                    }
+                }}
+            />
+        )
     }
 
     const renderInputToolbar = (props) => {
@@ -99,6 +120,7 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
     const renderCustomerView = (props) => {
         const { currentMessage} = props;
+        console.log(currentMessage);
         if (currentMessage.location) {
             return (
                 <MapView
@@ -129,6 +151,13 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
                 onSend={messages => onSend(messages)}
                 renderActions={renderCustomActions}
                 renderCustomView={renderCustomerView}
+                renderMessageImage={(props) => (
+                    <Image
+                        source={{ uri: props.currentMessage.image }}
+                        style={{ width: 200, height: 200 }}
+                        resizeMode="cover"
+                    />
+                )}
                 user={{
                     _id: userID,
                     name: name
