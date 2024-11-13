@@ -1,10 +1,11 @@
 import { TouchableOpacity, View, Text, StyleSheet, Alert } from "react-native";
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID }) => {
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, name }) => {
     const actionSheet = useActionSheet();
 
     const onActionPress = () => {
@@ -44,7 +45,16 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
         const blob = await response.blob();
         uploadBytes(newUploadRef, blob).then(async (snapshot) => {
             const imageURL = await getDownloadURL(snapshot.ref);
-            onSend({ image: imageURL })
+            onSend({
+                _id: uuidv4(),
+                image: imageURL,
+                createdAt: new Date(),
+                text: "",
+                user: {
+                    _id: userID,
+                    name: name
+                },
+            });
         });
     }
 
@@ -70,6 +80,13 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID })
             const location = await Location.getCurrentPositionAsync({});
             if (location) {
                 onSend({
+                    _id: uuidv4(),
+                    text: "",
+                    createdAt: new Date(),
+                    user: {
+                        _id: userID,
+                        name: name
+                    },
                     location: {
                         longitude: location.coords.longitude,
                         latitude: location.coords.latitude,

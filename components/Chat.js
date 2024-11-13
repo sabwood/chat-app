@@ -1,6 +1,6 @@
 import { Bubble, GiftedChat, InputToolbar } from "react-native-gifted-chat";
 import { useState, useEffect } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform, Image } from "react-native";
+import { StyleSheet, View, KeyboardAvoidingView, Platform, Image, Text } from "react-native";
 import { addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapView from 'react-native-maps';
@@ -23,12 +23,10 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
             const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
             unsubMessages = onSnapshot(q, (docs) => {
                 let newMessages = [];
-                docs.forEach(doc => {
+                docs.forEach((doc) => {
                     newMessages.push({
                         id: doc.id,
                         ...doc.data(),
-                        location: doc.location || null,
-                        image: doc.image || null,
                         createdAt: new Date(doc.data().createdAt.toMillis()),
                     })
                 });
@@ -43,8 +41,15 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
     }, [isConnected]);
 
     const onSend = (newMessages) => {
-        addDoc(collection(db, "messages"), newMessages[0]);
-    }
+        if (newMessages) {
+            addDoc(collection(db, "messages"), newMessages).catch((error) =>
+            {
+                console.error("failed to send message:", error);
+            });
+        } else {
+            console.error("newMessages is undefined", newMessages);
+        }
+    };
 
     const loadCachedMessages = async () => {
         const cachedMessages = await AsyncStorage.getItem("messages") || [];
@@ -61,38 +66,41 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
 
     const renderBubble = (props) => {
         const { currentMessage } = props;
-        console.log(currentMessage);
-
-        if (currentMessage.image) {
-            return (
-                <Bubble
-                    {...props}
-                    wrapperStyle={{
-                        right: {
-                            backgroundColor: "#000"
-                        },
-                        left: {
-                            backgroundColor: "#FFF"
-                        }
-                    }}
-                >
-                    <Image source={{ uri: currentMessage.image }} style={{ width: 200, height: 200}} />
-                </Bubble>
-            )
-        } else return (
+        return (
             <Bubble
                 {...props}
                 wrapperStyle={{
                     right: {
-                        backgroundColor: "#000"
+                        backgroundColor: "#000",
                     },
                     left: {
-                        backgroundColor: "#FFF"
-                    }
+                        backgroundColor: "#FFF",
+                    },
                 }}
-            />
-        )
-    }
+                textStyle={{
+                    right: {
+                        color: "#000000",
+                    },
+                    left: {
+                        color: "#000000",
+                    },
+                }}
+            >
+                <View style={[styles.container]}>
+                    {currentMessage.image ? (
+                        <View style={{ padding: 10 }}>
+                            <Image
+                                source={{ uri: currentMessage.image }}
+                                style={[styles.image]}
+                            />
+                        </View>
+                    ) : (
+                        <Text>no image available</Text>
+                    )}
+                </View>
+            </Bubble>
+        );
+    };
 
     const renderInputToolbar = (props) => {
         if (isConnected) return <InputToolbar {...props} />;
@@ -104,38 +112,29 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
             <CustomActions
                 userID={userID}
                 storage={storage}
+                onSend={onSend}
+                name={name}
                 {...props}
-                onSend={(newMessages => {
-                    onSend([{
-                        ...newMessages,
-                        user: {
-                            _id: userID,
-                            name: name
-                        }
-                    }])
-                })}
             />
         );
     };
 
-    const renderCustomerView = (props) => {
-        const { currentMessage} = props;
-        console.log(currentMessage);
-        if (currentMessage.location) {
+    const renderCustomView = (props) => {
+        const { currentMessage } = props;
+        if (
+            currentMessage.location &&
+            currentMessage.location.latitude &&
+            currentMessage.location.longitude
+        ) {
             return (
                 <MapView
-                    style={{
-                        width: 150,
-                        height: 100,
-                        borderRadius: 13,
-                        margin: 3
-                    }}
                     region={{
                         latitude: currentMessage.location.latitude,
                         longitude: currentMessage.location.longitude,
                         latitudeDelta: 0.0922,
                         longitudeDelta: 0.0421,
                     }}
+                    style={{ width: 150, height: 100 }}
                 />
             );
         }
@@ -147,17 +146,10 @@ const Chat = ({ db, route, navigation, isConnected, storage }) => {
             <GiftedChat
                 messages={messages}
                 renderBubble={renderBubble}
-                renderInputToolbar={renderInputToolbar}
                 onSend={messages => onSend(messages)}
+                renderInputToolbar={renderInputToolbar}
                 renderActions={renderCustomActions}
-                renderCustomView={renderCustomerView}
-                renderMessageImage={(props) => (
-                    <Image
-                        source={{ uri: props.currentMessage.image }}
-                        style={{ width: 200, height: 200 }}
-                        resizeMode="cover"
-                    />
-                )}
+                renderCustomView={renderCustomView}
                 user={{
                     _id: userID,
                     name: name
